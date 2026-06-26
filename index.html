@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>PackRip — 虛擬卡包．真實卡牌．</title>
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0b14;
+    --bg-2: #11131f;
+    --bg-3: #171a29;
+    --surface: #1b1f30;
+    --line: #2a2f45;
+    --text: #eef1ff;
+    --muted: #9aa3c7;
+    --brand: #7c5cff;
+    --brand-2: #00e0c6;
+    --accent: #ff3d7f;
+    --gold: #ffce4d;
+    --green: #25d07a;
+    --radius: 16px;
+    --shadow: 0 18px 50px rgba(0,0,0,.45);
+    --glow: 0 0 24px rgba(124,92,255,.55);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(124,92,255,.18), transparent 60%),
+      radial-gradient(900px 500px at 0% 10%, rgba(0,224,198,.12), transparent 55%),
+      var(--bg);
+    color: var(--text);
+    font-family: "Microsoft JhengHei", "微軟正黑體", "PingFang TC", "Noto Sans TC", "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { width: min(1180px, 92vw); margin-inline: auto; }
+  .pill { display: inline-flex; align-items: center; gap: .4rem; padding: .35rem .7rem; border-radius: 999px; font-size: .74rem; font-weight: 700; letter-spacing: .06em; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    border: 0; cursor: pointer; font-weight: 800; letter-spacing: .02em;
+    padding: .8rem 1.3rem; border-radius: 12px; font-size: .95rem;
+    color: #fff; background: linear-gradient(135deg, var(--brand), var(--accent));
+    box-shadow: var(--glow); transition: transform .12s ease, box-shadow .2s ease, opacity .2s;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 0 32px rgba(255,61,127,.55); }
+  .btn.ghost { background: transparent; border: 1px solid var(--line); box-shadow: none; color: var(--text); }
+  .btn.ghost:hover { border-color: var(--brand); box-shadow: var(--glow); }
+  .btn.mini { padding: .55rem .9rem; font-size: .85rem; border-radius: 10px; }
+  .btn.green { background: linear-gradient(135deg, var(--green), #0fa968); box-shadow: 0 0 22px rgba(37,208,122,.45); }
+
+  /* NAV */
+  header.nav {
+    position: sticky; top: 0; z-index: 50;
+    backdrop-filter: blur(12px);
+    background: rgba(10,11,20,.72);
+    border-bottom: 1px solid var(--line);
+  }
+  .nav-inner { display: flex; align-items: center; gap: 1.4rem; padding: .85rem 0; }
+  .logo { display: flex; align-items: center; gap: .6rem; font-weight: 900; font-size: 1.25rem; letter-spacing: .04em; }
+  .logo .mark {
+    width: 34px; height: 34px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    display: grid; place-items: center; font-size: 1.1rem; box-shadow: var(--glow);
+  }
+  .logo b { color: var(--brand-2); }
+  nav.links { display: flex; gap: 1.3rem; margin-inline-start: 1rem; font-weight: 600; font-size: .95rem; color: var(--muted); }
+  nav.links a:hover { color: var(--text); }
+  .nav-cta { margin-inline-start: auto; display: flex; gap: .6rem; align-items: center; }
+
+  /* TICKER */
+  .ticker { border-block: 1px solid var(--line); background: var(--bg-2); overflow: hidden; }
+  .ticker-track { display: flex; gap: 2.5rem; white-space: nowrap; padding: .55rem 0; width: max-content; animation: scroll 38s linear infinite; }
+  .ticker:hover .ticker-track { animation-play-state: paused; }
+  .ticker-item { font-size: .88rem; color: var(--muted); font-weight: 600; }
+  .ticker-item b { color: var(--text); }
+  .ticker-item .hit { color: var(--gold); }
+  @keyframes scroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* HERO */
+  .hero { padding: 4.5rem 0 3rem; text-align: center; }
+  .hero .pill { background: rgba(124,92,255,.14); color: var(--brand-2); border: 1px solid var(--line); }
+  .hero h1 { font-size: clamp(2.4rem, 6vw, 4.4rem); line-height: 1.12; margin: 1.1rem 0 .6rem; font-weight: 900; letter-spacing: 0; }
+  .hero h1 .grad { background: linear-gradient(120deg, var(--brand-2), var(--brand) 60%, var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero p.sub { color: var(--muted); font-size: 1.15rem; max-width: 640px; margin: 0 auto 1.8rem; }
+  .hero-cta { display: flex; gap: .8rem; justify-content: center; flex-wrap: wrap; }
+  .stats { display: flex; gap: 2.4rem; justify-content: center; margin-top: 2.6rem; flex-wrap: wrap; }
+  .stat b { display: block; font-size: 1.7rem; font-weight: 900; color: var(--text); }
+  .stat span { color: var(--muted); font-size: .85rem; letter-spacing: .04em; }
+
+  /* SECTION */
+  section { padding: 3.4rem 0; }
+  .sec-head { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.6rem; flex-wrap: wrap; }
+  .sec-head h2 { font-size: clamp(1.6rem, 3.5vw, 2.3rem); margin: 0; font-weight: 900; letter-spacing: 0; }
+  .sec-head .eyebrow { color: var(--brand-2); font-weight: 800; letter-spacing: .1em; font-size: .8rem; }
+  .sec-head a.see { color: var(--muted); font-weight: 700; font-size: .9rem; }
+  .sec-head a.see:hover { color: var(--brand-2); }
+
+  /* PACK GRID */
+  .pack-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.1rem; }
+  .pack {
+    background: linear-gradient(180deg, var(--surface), var(--bg-3));
+    border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+    transition: transform .15s ease, border-color .2s ease, box-shadow .2s ease;
+    display: flex; flex-direction: column;
+  }
+  .pack:hover { transform: translateY(-4px); border-color: var(--brand); box-shadow: var(--shadow); }
+  .pack .art { aspect-ratio: 4/5; position: relative; display: grid; place-items: center; }
+  .pack .art .emoji { font-size: 3.4rem; filter: drop-shadow(0 8px 18px rgba(0,0,0,.5)); }
+  .pack .left-tag { position: absolute; top: .6rem; left: .6rem; background: rgba(0,0,0,.5); color: #fff; font-size: .72rem; font-weight: 800; padding: .25rem .55rem; border-radius: 999px; letter-spacing: .02em; }
+  .pack .info { padding: .85rem .95rem 1rem; display: flex; flex-direction: column; gap: .55rem; }
+  .pack .info .name { font-weight: 800; font-size: 1rem; }
+  .pack .info .row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+  .pack .price { font-weight: 900; font-size: 1.15rem; color: var(--brand-2); }
+  .pack .sold { font-size: .76rem; color: var(--muted); }
+
+  /* HOW IT WORKS */
+  .how { background: var(--bg-2); border-block: 1px solid var(--line); }
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.2rem; }
+  .step { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.6rem 1.4rem; }
+  .step .num { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 1.1rem; background: linear-gradient(135deg, var(--brand), var(--brand-2)); margin-bottom: .9rem; box-shadow: var(--glow); }
+  .step h3 { margin: 0 0 .4rem; font-size: 1.2rem; }
+  .step p { margin: 0; color: var(--muted); font-size: .95rem; }
+
+  /* SPOTLIGHT */
+  .spot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.1rem; }
+  .spot { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .spot .img { aspect-ratio: 16/10; display: grid; place-items: center; font-size: 2.6rem; position: relative; }
+  .spot .rar { position: absolute; top: .55rem; right: .55rem; font-size: .7rem; font-weight: 900; padding: .25rem .55rem; border-radius: 999px; letter-spacing: .04em; }
+  .spot .meta { padding: .85rem .95rem 1rem; }
+  .spot .meta .title { font-weight: 700; font-size: .9rem; line-height: 1.4; }
+  .spot .meta .by { color: var(--muted); font-size: .8rem; margin-top: .45rem; display: flex; justify-content: space-between; }
+
+  /* ACTIVITY FEED */
+  .feed { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .feed .feed-head { display: flex; align-items: center; gap: .6rem; padding: .9rem 1.1rem; border-bottom: 1px solid var(--line); font-weight: 800; }
+  .live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 0 rgba(37,208,122,.6); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(37,208,122,.6); } 70% { box-shadow: 0 0 0 10px rgba(37,208,122,0); } 100% { box-shadow: 0 0 0 0 rgba(37,208,122,0); } }
+  .feed-row { display: grid; grid-template-columns: 1.6fr .8fr .9fr 1fr; gap: .5rem; padding: .7rem 1.1rem; border-bottom: 1px solid var(--line); font-size: .88rem; align-items: center; }
+  .feed-row:last-child { border-bottom: 0; }
+  .feed-row .pk { font-weight: 700; }
+  .feed-row .pr { color: var(--brand-2); font-weight: 800; }
+  .feed-row .tm { color: var(--muted); font-size: .82rem; }
+  .feed-row .us { color: var(--muted); text-align: end; }
+  .feed-row.new { animation: flashin .8s ease; }
+  @keyframes flashin { from { background: rgba(124,92,255,.18); } to { background: transparent; } }
+  .feed-head-cols { display: grid; grid-template-columns: 1.6fr .8fr .9fr 1fr; gap: .5rem; padding: .55rem 1.1rem; font-size: .72rem; letter-spacing: .04em; color: var(--muted); border-bottom: 1px solid var(--line); }
+  .feed-head-cols .us { text-align: end; }
+
+  /* DROP banner */
+  .drop { background: linear-gradient(120deg, rgba(124,92,255,.18), rgba(255,61,127,.14)); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.8rem; display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+  .drop .timer { font-variant-numeric: tabular-nums; font-weight: 900; font-size: 1.4rem; color: var(--gold); letter-spacing: .04em; }
+  .drop .grow { flex: 1; min-width: 220px; }
+  .drop h3 { margin: 0 0 .3rem; font-size: 1.4rem; }
+  .drop p { margin: 0; color: var(--muted); }
+
+  /* FOOTER */
+  footer { border-top: 1px solid var(--line); background: var(--bg-2); padding: 2.6rem 0 2rem; margin-top: 1rem; }
+  .foot-grid { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 2rem; }
+  .foot-grid h4 { font-size: .85rem; letter-spacing: .06em; color: var(--muted); margin: 0 0 .8rem; }
+  .foot-grid a { display: block; color: var(--muted); padding: .25rem 0; font-size: .92rem; }
+  .foot-grid a:hover { color: var(--text); }
+  .foot-bottom { margin-top: 2rem; padding-top: 1.3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .82rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+
+  /* MODAL */
+  .modal-back { position: fixed; inset: 0; background: rgba(5,6,12,.82); backdrop-filter: blur(6px); display: none; place-items: center; z-index: 100; padding: 1.2rem; }
+  .modal-back.open { display: grid; }
+  .modal { width: min(440px, 94vw); background: linear-gradient(180deg, var(--surface), var(--bg-3)); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 1.8rem; text-align: center; position: relative; }
+  .modal .close { position: absolute; top: .9rem; right: 1rem; background: transparent; border: 0; color: var(--muted); font-size: 1.4rem; cursor: pointer; line-height: 1; }
+  .modal .close:hover { color: var(--text); }
+  .modal h3 { margin: .2rem 0 .2rem; font-size: 1.3rem; }
+  .modal .modal-sub { color: var(--muted); font-size: .92rem; margin-bottom: 1.2rem; }
+  .pack-stage { perspective: 900px; margin: 1rem auto 1.4rem; width: 180px; height: 240px; }
+  .pack-3d { width: 100%; height: 100%; border-radius: 16px; display: grid; place-items: center; font-size: 4rem;
+    background: linear-gradient(150deg, var(--brand), var(--accent)); box-shadow: var(--shadow), inset 0 0 30px rgba(255,255,255,.15);
+    transition: transform .25s ease; }
+  .pack-3d.shake { animation: shake .5s ease infinite; }
+  @keyframes shake { 0%,100% { transform: rotate(-3deg) translateY(0); } 25% { transform: rotate(4deg) translateY(-6px); } 50% { transform: rotate(-5deg) translateY(2px); } 75% { transform: rotate(3deg) translateY(-4px); } }
+  .reveal-card { display: none; }
+  .reveal-card.show { display: block; animation: pop .5s cubic-bezier(.2,1.2,.3,1); }
+  @keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .card-art { width: 180px; height: 240px; margin: 0 auto 1rem; border-radius: 16px; display: grid; place-items: center; font-size: 3.6rem; position: relative; border: 2px solid; }
+  .card-name { font-weight: 800; font-size: 1.05rem; }
+  .card-rar-line { font-size: .85rem; color: var(--muted); margin: .3rem 0 1.1rem; }
+  .reveal-actions { display: flex; gap: .7rem; justify-content: center; }
+  .est { color: var(--green); font-weight: 900; }
+
+  /* rarity colors */
+  .r-common { background: #2b3047; color: #c7cdf0; }
+  .r-common.card-art, .r-common .rar { border-color:#444c6e; }
+  .r-rare { background: linear-gradient(150deg,#1b3a6b,#2563c9); color:#cfe2ff; }
+  .r-rare.card-art { border-color:#4f8cff; }
+  .r-rare.rar { background:#2563c9; color:#fff; }
+  .r-epic { background: linear-gradient(150deg,#3a1b6b,#7c5cff); color:#e8defe; }
+  .r-epic.card-art { border-color:#a78bff; }
+  .r-epic.rar { background:#7c5cff; color:#fff; }
+  .r-grail { background: linear-gradient(150deg,#6b4a00,#ffce4d); color:#3a2a00; }
+  .r-grail.card-art { border-color:#ffce4d; box-shadow: 0 0 30px rgba(255,206,77,.6); }
+  .r-grail.rar { background:#ffce4d; color:#3a2a00; }
+  .badge-grail-glow { animation: grailpulse 1.2s ease-in-out infinite alternate; }
+  @keyframes grailpulse { from { box-shadow: 0 0 18px rgba(255,206,77,.35); } to { box-shadow: 0 0 40px rgba(255,206,77,.75); } }
+
+  @media (max-width: 760px) {
+    nav.links { display: none; }
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+    .feed-row, .feed-head-cols { grid-template-columns: 1.4fr .8fr 1fr; }
+    .feed-row .tm, .feed-head-cols .tm { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="logo" href="#top"><span class="mark">⚡</span>Pack<b>Rip</b></a>
+    <nav class="links">
+      <a href="#packs">商店</a>
+      <a href="#how">運作方式</a>
+      <a href="#spotlight">熱門卡牌</a>
+      <a href="#activity">即時動態</a>
+      <a href="#drop">每日抽獎</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn ghost mini" id="signup">註冊</button>
+      <a class="btn mini" href="#packs">立即購買</a>
+    </div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker" id="top">
+  <div class="ticker-track" id="ticker"></div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <span class="pill">🎴 全天候開包</span>
+    <h1>虛擬卡包．<br><span class="grad">真實卡牌．</span></h1>
+    <p class="sub">隨時隨地在虛擬卡牌商店開包。揭曉你抽中的卡牌，選擇寄送到府，或立即兌換現金。最刺激的開包體驗，最大的驚喜。</p>
+    <div class="hero-cta">
+      <a class="btn" href="#packs">🔥 選購卡包</a>
+      <a class="btn ghost" href="#how">了解更多</a>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="stat-opened">1,963,748</b><span>已開卡包</span></div>
+      <div class="stat"><b>$128.7K</b><span>已送出獎金</span></div>
+      <div class="stat"><b>24/7</b><span>全天候開包</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- PACKS -->
+<section id="packs">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <div class="eyebrow">挑選 · 開包 · 揭曉</div>
+        <h2>熱門卡包</h2>
+      </div>
+      <a class="see" href="#packs">查看全部 →</a>
+    </div>
+    <div class="pack-grid" id="pack-grid"></div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="how" id="how">
+  <div class="wrap">
+    <div class="sec-head"><div><div class="eyebrow">超簡單</div><h2>運作方式</h2></div></div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>挑選並開包</h3>
+        <p>選擇想購買的卡包，在虛擬卡牌商店即時開包，揭曉你抽中的卡牌。</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>收藏或回售</h3>
+        <p>將卡牌寄送到府收藏，或依市場估值立即兌換現金。</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>提升等級</h3>
+        <p>每次開包都能賺取免費點數、參加每日抽獎，並解鎖更高等級享有更佳機率與專屬好禮。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DAILY DROP -->
+<section id="drop">
+  <div class="wrap">
+    <div class="drop">
+      <div class="grow">
+        <span class="pill" style="background:rgba(255,206,77,.18);color:var(--gold)">免費參加</span>
+        <h3>每日抽獎 — 每天免費點數</h3>
+        <p>已送出超過 <b style="color:var(--text)">$128.7K</b> 獎金。免費參加，看看誰中了大獎。</p>
+      </div>
+      <div style="text-align:center">
+        <div class="timer" id="drop-timer">18:51:15</div>
+        <span class="sold">今日截止 · 85 人參加</span>
+      </div>
+      <button class="btn" id="enter-drop">免費參加</button>
+    </div>
+  </div>
+</section>
+
+<!-- SPOTLIGHT -->
+<section id="spotlight">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><div class="eyebrow">想試試手氣？</div><h2>藏家焦點</h2></div>
+      <a class="see" href="#packs">查看全部 →</a>
+    </div>
+    <div class="spot-grid" id="spot-grid"></div>
+  </div>
+</section>
+
+<!-- ACTIVITY -->
+<section id="activity">
+  <div class="wrap">
+    <div class="sec-head">
+      <div><div class="eyebrow">熱門卡牌熱銷中</div><h2>即時開包動態</h2></div>
+    </div>
+    <div class="feed">
+      <div class="feed-head"><span class="live-dot"></span> 即時動態 · 已開 <span id="feed-count">1,963,748</span> 件</div>
+      <div class="feed-head-cols"><span>卡包</span><span>價格</span><span class="tm">時間</span><span class="us">用戶</span></div>
+      <div id="feed-body"></div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <a class="logo" href="#top" style="margin-bottom:.7rem"><span class="mark">⚡</span>Pack<b>Rip</b></a>
+        <p style="color:var(--muted);font-size:.92rem;max-width:30ch">最刺激的數位開包體驗 — 隨時隨地，任你享受。</p>
+      </div>
+      <div>
+        <h4>快速連結</h4>
+        <a href="#packs">商店</a>
+        <a href="#spotlight">熱門卡牌</a>
+        <a href="#how">運作方式</a>
+        <a href="#drop">點數與等級</a>
+      </div>
+      <div>
+        <h4>支援服務</h4>
+        <a href="#activity">即時動態</a>
+        <a href="#top">常見問題</a>
+        <a href="#top">社群</a>
+        <a href="#top">support@packrip.example</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 PackRip — 示範網站。版權所有。</span>
+      <span>本網站為非商業示範用途，無實際購買、寄送或付款功能。</span>
+    </div>
+  </div>
+</footer>
+
+<!-- RIP MODAL -->
+<div class="modal-back" id="modal">
+  <div class="modal">
+    <button class="close" id="modal-close" aria-label="關閉">×</button>
+    <div id="stage-buy">
+      <h3 id="modal-pack-name">卡包</h3>
+      <div class="modal-sub" id="modal-pack-price">$0</div>
+      <div class="pack-stage"><div class="pack-3d" id="pack3d">🎴</div></div>
+      <button class="btn" id="rip-btn" style="width:100%">⚡ 開這個卡包</button>
+      <p class="sold" style="margin-top:.8rem">僅供示範 — 無需付款。</p>
+    </div>
+    <div class="reveal-card" id="stage-reveal">
+      <div class="pill" style="background:rgba(0,224,198,.14);color:var(--brand-2);margin-bottom:.6rem">你抽到了</div>
+      <div class="card-art" id="rev-art">🃏</div>
+      <span class="rar" id="rev-rar" style="display:inline-block;padding:.25rem .7rem;border-radius:999px;font-weight:900;font-size:.74rem"></span>
+      <div class="card-name" id="rev-name" style="margin-top:.6rem">—</div>
+      <div class="card-rar-line">估計價值 <span class="est" id="rev-val">$0</span></div>
+      <div class="reveal-actions">
+        <button class="btn green" id="ship-btn">📦 寄送到府</button>
+        <button class="btn ghost" id="sell-btn">💵 回售 <span id="sell-amt"></span></button>
+      </div>
+      <button class="btn ghost mini" id="rip-again" style="margin-top:1rem;width:100%">再開一包</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- 模擬資料 ----------
+  var PACKS = [
+    { name: "籃球精選包", emoji: "🏀", price: 29, left: 438 },
+    { name: "寶可夢 黃版", emoji: "⚡", price: 99, left: 214 },
+    { name: "寶可夢 紅版", emoji: "🔴", price: 30, left: 391 },
+    { name: "迪士尼超值包", emoji: "🏰", price: 49, left: 107 },
+    { name: "籃球超值包", emoji: "🏀", price: 49, left: 88 },
+    { name: "美式足球超值包", emoji: "🏈", price: 49, left: 263 },
+    { name: "棒球精選包", emoji: "⚾", price: 99, left: 294 },
+    { name: "寶可夢 狩獵區", emoji: "🌿", price: 15, left: 98 },
+    { name: "棒球短打包", emoji: "⚾", price: 15, left: 529 }
+  ];
+
+  var RARITIES = [
+    { key: "common", label: "普通", cls: "r-common", weight: 58, mult: [0.3, 0.8] },
+    { key: "rare",   label: "稀有", cls: "r-rare",   weight: 28, mult: [0.9, 2.2] },
+    { key: "epic",   label: "史詩", cls: "r-epic",   weight: 11, mult: [2.5, 6] },
+    { key: "grail",  label: "聖杯", cls: "r-grail",  weight: 3,  mult: [8, 30] }
+  ];
+
+  var CARD_FACES = ["🃏", "⭐", "🏆", "💎", "🔥", "👑", "🎯", "🪙"];
+  var PLAYERS = ["Kobe 折射卡", "Curry Kaboom", "Jordan 簽名卡", "Wemby Color Blast",
+    "LeBron 簽名卡", "噴火龍 閃卡", "皮卡丘 插畫卡", "Skenes 超折射卡",
+    "SGA 漫畫卡", "米奇 1/1 素描卡"];
+  var USERS = ["rc24", "stacks21", "logan", "seanq88", "bigduck8", "kml93", "MikeD",
+    "maximus", "David", "jg252", "ssschumi", "js2858", "bobbysoon"];
+
+  function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+  function money(n) { return "$" + Math.round(n).toLocaleString(); }
+
+  function rollRarity() {
+    var total = RARITIES.reduce(function (s, r) { return s + r.weight; }, 0);
+    var roll = Math.random() * total, acc = 0;
+    for (var i = 0; i < RARITIES.length; i++) { acc += RARITIES[i].weight; if (roll <= acc) return RARITIES[i]; }
+    return RARITIES[0];
+  }
+
+  // ---------- 跑馬燈 ----------
+  function buildTicker() {
+    var items = [];
+    var verbs = ["抽中了聖杯卡", "抽中了夢幻卡", "開出了史詩卡", "開出了稀有卡"];
+    for (var i = 0; i < 14; i++) {
+      items.push('<span class="ticker-item"><b>' + rand(USERS) + '</b> <span class="hit">' + rand(verbs) + '</span></span>');
+    }
+    document.getElementById("ticker").innerHTML = items.join("") + items.join("");
+  }
+
+  // ---------- 卡包 ----------
+  function buildPacks() {
+    var grid = document.getElementById("pack-grid");
+    PACKS.forEach(function (p, idx) {
+      var tint = ["#7c5cff", "#00e0c6", "#ff3d7f", "#ffce4d", "#25d07a"][idx % 5];
+      var el = document.createElement("div");
+      el.className = "pack";
+      el.innerHTML =
+        '<div class="art" style="background:radial-gradient(120px 120px at 50% 35%, ' + tint + '44, transparent), linear-gradient(160deg, #1b1f30, #11131f)">' +
+          '<span class="left-tag">剩 ' + p.left + ' 包</span>' +
+          '<span class="emoji">' + p.emoji + '</span>' +
+        '</div>' +
+        '<div class="info">' +
+          '<div class="name">' + p.name + '</div>' +
+          '<div class="row"><span class="price">$' + p.price + '</span><span class="sold">已售 ' + (200 + Math.floor(Math.random() * 240)) + '</span></div>' +
+          '<button class="btn mini quick" data-i="' + idx + '" style="width:100%">快速購買並開包</button>' +
+        '</div>';
+      grid.appendChild(el);
+    });
+    grid.addEventListener("click", function (e) {
+      var b = e.target.closest(".quick");
+      if (b) openModal(PACKS[+b.getAttribute("data-i")]);
+    });
+  }
+
+  // ---------- 藏家焦點 ----------
+  function buildSpotlight() {
+    var grid = document.getElementById("spot-grid");
+    for (var i = 0; i < 8; i++) {
+      var r = RARITIES[Math.min(3, 1 + Math.floor(Math.random() * 3))];
+      var face = rand(CARD_FACES);
+      var val = money((20 + Math.random() * 40) * r.mult[1]);
+      var days = (i % 7) + 1;
+      var el = document.createElement("div");
+      el.className = "spot";
+      el.innerHTML =
+        '<div class="img ' + r.cls + '"><span>' + face + '</span><span class="rar ' + r.cls + '">' + r.label + '</span></div>' +
+        '<div class="meta"><div class="title">' + rand(PLAYERS) + ' /' + (5 + Math.floor(Math.random() * 50)) + '</div>' +
+        '<div class="by"><span>@' + rand(USERS) + '</span><span>' + val + ' · ' + days + ' 天前</span></div></div>';
+      grid.appendChild(el);
+    }
+  }
+
+  // ---------- 即時動態 ----------
+  function feedRow(isNew) {
+    var p = rand(PACKS);
+    return '<div class="feed-row' + (isNew ? ' new' : '') + '">' +
+      '<span class="pk">' + p.emoji + ' ' + p.name + '</span>' +
+      '<span class="pr">$' + p.price + '</span>' +
+      '<span class="tm">剛剛</span>' +
+      '<span class="us">' + rand(USERS) + '</span></div>';
+  }
+  function buildFeed() {
+    var body = document.getElementById("feed-body");
+    var rows = "";
+    for (var i = 0; i < 7; i++) rows += feedRow(false);
+    body.innerHTML = rows;
+  }
+  var opened = 1963748;
+  function tickFeed() {
+    var body = document.getElementById("feed-body");
+    body.insertAdjacentHTML("afterbegin", feedRow(true));
+    while (body.children.length > 8) body.removeChild(body.lastChild);
+    opened += 1 + Math.floor(Math.random() * 3);
+    document.getElementById("feed-count").textContent = opened.toLocaleString();
+    document.getElementById("stat-opened").textContent = opened.toLocaleString();
+  }
+
+  // ---------- 倒數計時 ----------
+  function startTimer() {
+    var secs = 18 * 3600 + 51 * 60 + 15;
+    var el = document.getElementById("drop-timer");
+    setInterval(function () {
+      secs = secs > 0 ? secs - 1 : 18 * 3600;
+      var h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
+      el.textContent = [h, m, s].map(function (n) { return String(n).padStart(2, "0"); }).join(":");
+    }, 1000);
+  }
+
+  // ---------- 彈窗 / 開包 ----------
+  var modal = document.getElementById("modal");
+  var stageBuy = document.getElementById("stage-buy");
+  var stageReveal = document.getElementById("stage-reveal");
+  var pack3d = document.getElementById("pack3d");
+  var currentPack = null;
+
+  function openModal(p) {
+    currentPack = p;
+    document.getElementById("modal-pack-name").textContent = p.name;
+    document.getElementById("modal-pack-price").textContent = "$" + p.price + " · 剩 " + p.left + " 包";
+    pack3d.textContent = p.emoji;
+    stageBuy.style.display = "block";
+    stageReveal.classList.remove("show");
+    modal.classList.add("open");
+  }
+  function closeModal() { modal.classList.remove("open"); }
+
+  function doRip() {
+    pack3d.classList.add("shake");
+    var ripBtn = document.getElementById("rip-btn");
+    ripBtn.disabled = true; ripBtn.textContent = "開包中…";
+    setTimeout(function () {
+      pack3d.classList.remove("shake");
+      ripBtn.disabled = false; ripBtn.textContent = "⚡ 開這個卡包";
+      reveal();
+    }, 1100);
+  }
+
+  function reveal() {
+    var r = rollRarity();
+    var base = currentPack ? currentPack.price : 30;
+    var val = base * (r.mult[0] + Math.random() * (r.mult[1] - r.mult[0]));
+    var art = document.getElementById("rev-art");
+    art.className = "card-art " + r.cls + (r.key === "grail" ? " badge-grail-glow" : "");
+    art.textContent = rand(CARD_FACES);
+    var rar = document.getElementById("rev-rar");
+    rar.className = "rar " + r.cls;
+    rar.textContent = r.label;
+    document.getElementById("rev-name").textContent = rand(PLAYERS) + " /" + (5 + Math.floor(Math.random() * 50));
+    document.getElementById("rev-val").textContent = money(val);
+    document.getElementById("sell-amt").textContent = money(val * 0.85);
+    stageBuy.style.display = "none";
+    stageReveal.classList.add("show");
+  }
+
+  function ripAgain() {
+    stageReveal.classList.remove("show");
+    stageBuy.style.display = "block";
+  }
+
+  // ---------- 事件綁定（僅使用 addEventListener，無行內事件處理） ----------
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  modal.addEventListener("click", function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeModal(); });
+  document.getElementById("rip-btn").addEventListener("click", doRip);
+  document.getElementById("rip-again").addEventListener("click", ripAgain);
+  document.getElementById("ship-btn").addEventListener("click", function () {
+    document.getElementById("ship-btn").textContent = "✅ 已排程寄送！";
+  });
+  document.getElementById("sell-btn").addEventListener("click", function () {
+    document.getElementById("sell-btn").textContent = "✅ 已售出！";
+  });
+  document.getElementById("signup").addEventListener("click", function () {
+    this.textContent = "✓ 歡迎！";
+  });
+  document.getElementById("enter-drop").addEventListener("click", function () {
+    this.textContent = "✓ 已參加！";
+    this.disabled = true;
+  });
+
+  // ---------- 初始化 ----------
+  buildTicker();
+  buildPacks();
+  buildSpotlight();
+  buildFeed();
+  startTimer();
+  setInterval(tickFeed, 2600);
+})();
+</script>
+</body>
+</html>
